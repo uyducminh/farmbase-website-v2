@@ -6,7 +6,9 @@ Hoàn toàn độc lập: repo riêng, dự án Cloudflare Pages riêng, không 
 ## Cách dựng
 - Hệ thống thiết kế tạo bằng skill **UI/UX Pro Max** (phong cách Organic Biophilic, xanh lá và vàng mùa vụ).
 - Bố cục và chữ theo skill **Frontend Design** của Anthropic: hình ảnh chủ đạo là bản đồ thửa đất, font Be Vietnam Pro.
-- Một file `index.html` tĩnh, không cần build.
+- Chuyển động theo bộ skill của **Emil Kowalski**: một màn mở đầu duy nhất, đường cong ease-out, hover chỉ trên thiết bị có chuột.
+- Ảnh, ảnh chụp app, logo và video lấy từ repo website cũ (chỉ sao chép, đã nén lại) trong thư mục `assets/`.
+- Trang tĩnh: `index.html` + `assets/`, không cần build.
 
 ## Triển khai lên Cloudflare Pages
 1. Cloudflare Dashboard > Workers & Pages > Create > Pages > Connect to Git.
@@ -16,4 +18,3 @@ Hoàn toàn độc lập: repo riêng, dự án Cloudflare Pages riêng, không 
 ## Việc còn lại
 - Form tư vấn chưa nối máy chủ (bản cũ dùng Resend để gửi email).
 - Chỉ có tiếng Việt, chưa có EN và 中文.
-- Chưa có ảnh thật và video giới thiệu.
