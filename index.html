@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FarmBase bản mới</title>
+<meta name="description" content="FarmBase giúp HTX, doanh nghiệp và địa phương số hóa vùng trồng, ghi nhật ký canh tác qua Zalo và truy xuất nguồn gốc bằng mã QR.">
+<meta property="og:title" content="FarmBase: Dữ liệu vườn trồng, minh bạch từ gốc">
+<meta property="og:description" content="Quản lý vùng trồng, thửa đất và nhật ký canh tác. Nông hộ ghi trên Zalo, dữ liệu sẵn sàng khi kiểm tra và khi người mua quét QR.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Hệ thống thiết kế (UI/UX Pro Max: Organic Biophilic, xanh lá + vàng mùa vụ; điều chỉnh theo Frontend Design)
+   Ý tưởng bố cục: trang đọc như một bản đồ địa chính. Thửa đất là hình ảnh chủ đạo, mọi thứ khác căn trái, tiết chế. */
+:root{
+  --paper:#F2F5EF;      /* nền giấy khảo sát */
+  --surface:#FFFFFF;
+  --ink:#15241B;        /* chữ chính */
+  --muted:#4A5B50;      /* chữ phụ */
+  --leaf:#1B6A3A;       /* xanh lá cà phê, màu hành động */
+  --leaf-deep:#0F3F23;
+  --soil:#8C3A1E;       /* đất đỏ bazan, chỉ dùng cho thửa được chọn */
+  --gold:#A16207;       /* vàng mùa vụ, dấu dữ liệu */
+  --line:#C8D5C4;
+  --font:"Be Vietnam Pro", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --step--1:clamp(.84rem,.82rem + .1vw,.9rem);
+  --step-0:clamp(1rem,.97rem + .15vw,1.08rem);
+  --step-1:clamp(1.2rem,1.12rem + .4vw,1.4rem);
+  --step-2:clamp(1.5rem,1.3rem + 1vw,2.1rem);
+  --step-3:clamp(2.1rem,1.6rem + 2.4vw,3.6rem);
+  --gutter:clamp(16px,4vw,48px);
+  --max:1180px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:var(--step-0);line-height:1.6;-webkit-font-smoothing:antialiased}
+img,svg{max-width:100%;display:block}
+a{color:var(--leaf)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:4px}
+h1,h2,h3{line-height:1.15;text-wrap:balance;margin:0;letter-spacing:-.015em}
+h2{font-size:var(--step-2);font-weight:800}
+h3{font-size:var(--step-1);font-weight:700}
+p{margin:0}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gutter)}
+.lede{color:var(--muted);max-width:62ch}
+section{padding:clamp(56px,8vw,104px) 0}
+.sec-head{display:grid;gap:12px;margin-bottom:clamp(28px,4vw,48px);max-width:720px}
+.num{font-variant-numeric:tabular-nums}
+
+/* nút */
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 22px;border-radius:999px;font:600 var(--step-0)/1 var(--font);text-decoration:none;cursor:pointer;border:2px solid transparent;transition:background-color .2s,color .2s,border-color .2s}
+.btn-primary{background:var(--leaf);color:#fff}
+.btn-primary:hover{background:var(--leaf-deep)}
+.btn-ghost{border-color:var(--ink);color:var(--ink);background:transparent}
+.btn-ghost:hover{background:var(--ink);color:var(--paper)}
+.btn svg{width:20px;height:20px;flex:none}
+
+/* thanh thông báo + đầu trang */
+.notice{background:var(--leaf-deep);color:#E4EFE6;font-size:var(--step--1)}
+.notice .wrap{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding-top:10px;padding-bottom:10px}
+.notice a{color:#fff;font-weight:600}
+header.site{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.site .wrap{display:flex;align-items:center;gap:24px;min-height:68px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.2rem;color:var(--ink);text-decoration:none;letter-spacing:-.02em}
+.logo svg{width:30px;height:30px}
+nav.main{display:flex;gap:22px;margin-left:auto;font-size:var(--step--1);font-weight:500}
+nav.main a{color:var(--ink);text-decoration:none;padding:6px 0}
+nav.main a:hover{color:var(--leaf);text-decoration:underline;text-underline-offset:6px}
+header.site .btn{min-height:42px;padding:0 18px;font-size:var(--step--1)}
+@media (max-width:900px){nav.main{display:none}header.site .btn{margin-left:auto}}
+
+/* hero */
+.hero{padding:clamp(36px,6vw,80px) 0 clamp(48px,6vw,88px)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);align-items:center}
+@media (max-width:960px){.hero .wrap{grid-template-columns:1fr}}
+.hero h1{font-size:var(--step-3);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.hero .lede{margin-top:20px;font-size:var(--step-1);line-height:1.5}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.farmer-link{margin-top:18px;font-size:var(--step--1);color:var(--muted)}
+.farmer-link a{font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:36px;padding-top:22px;border-top:1px solid var(--line);font-size:var(--step--1);color:var(--muted)}
+.facts strong{display:block;font-size:var(--step-2);color:var(--ink);font-weight:800;letter-spacing:-.02em;line-height:1.1}
+
+/* bản đồ thửa */
+.map{position:relative;border-radius:22px;overflow:hidden;background:#E7EDE2;border:1px solid var(--line);box-shadow:0 30px 60px -30px rgba(21,36,27,.35)}
+.map svg.plots{width:100%;height:auto}
+.parcel{stroke:#F7F9F4;stroke-width:3;stroke-linejoin:round}
+.parcel.hl{fill:#E9C9B8;stroke:var(--soil);stroke-width:4}
+.pnum{font:600 13px var(--font);fill:#5B6E61;text-anchor:middle;dominant-baseline:middle}
+.contour{fill:none;stroke:#9DB39A;stroke-width:1.2;stroke-dasharray:5 6;opacity:.8}
+.pin-ring{fill:var(--soil);opacity:.18;transform-origin:327px 190px;animation:ping 2.4s ease-out 1s 3}
+@keyframes ping{0%{transform:scale(.6);opacity:.35}100%{transform:scale(2.2);opacity:0}}
+.map-legend{position:absolute;left:14px;top:14px;background:rgba(255,255,255,.92);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--muted);line-height:1.4}
+.map-legend b{color:var(--ink)}
+.record{position:relative;margin:-56px 16px 16px auto;width:min(340px,calc(100% - 32px));background:var(--surface);border-radius:16px;padding:16px 18px;box-shadow:0 14px 34px -12px rgba(21,36,27,.4);font-size:13.5px;line-height:1.45}
+.record h3{font-size:15px;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.record h3 span{font-weight:500;color:var(--muted);font-size:12.5px}
+.record dl{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin:12px 0 10px}
+.record dt{color:var(--muted)}
+.record dd{margin:0;font-weight:500}
+.record .ok{display:flex;gap:8px;align-items:center;color:var(--leaf);font-weight:600;font-size:12.5px;border-top:1px dashed var(--line);padding-top:10px}
+.record .ok svg{width:16px;height:16px}
+.record small{display:block;color:var(--muted);font-size:11.5px;margin-top:6px}
+@media (max-width:560px){.record{width:auto;margin:-40px 12px 12px}.map-legend{display:none}}
+
+/* so sánh */
+.compare{width:100%;border-collapse:collapse;background:var(--surface);border-radius:18px;overflow:hidden;box-shadow:0 1px 0 var(--line)}
+.compare-wrap{overflow-x:auto;border-radius:18px;border:1px solid var(--line)}
+.compare th,.compare td{text-align:left;padding:16px 20px;vertical-align:top;border-bottom:1px solid var(--line)}
+.compare tr:last-child td,.compare tr:last-child th{border-bottom:0}
+.compare thead th{font-size:var(--step--1);color:var(--muted);font-weight:600;background:#F7F9F5}
+.compare thead th:last-child{color:var(--leaf)}
+.compare tbody th{font-weight:700;width:22%;min-width:150px}
+.compare td.old{color:var(--muted);width:34%;min-width:200px}
+.compare td.new{min-width:240px;position:relative;padding-left:38px}
+.compare td.new::before{content:"";position:absolute;left:20px;top:25px;width:8px;height:8px;border-radius:50%;background:var(--leaf)}
+
+/* ba vai trò */
+.roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(20px,3vw,36px)}
+@media (max-width:900px){.roles{grid-template-columns:1fr}}
+.role{display:grid;gap:12px;align-content:start;padding-top:20px;border-top:3px solid var(--ink)}
+.role:nth-child(1){border-color:var(--gold)}
+.role:nth-child(2){border-color:var(--leaf)}
+.role:nth-child(3){border-color:var(--soil)}
+.role .who{font-size:var(--step--1);color:var(--muted);font-weight:600}
+.role ul{margin:4px 0 0;padding-left:1.1em;color:var(--muted)}
+.role li{margin:4px 0}
+.role .via{font-size:var(--step--1);font-weight:600;color:var(--ink);margin-top:6px}
+
+/* quy trình 6 bước */
+.process{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;counter-reset:step}
+@media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.steps{grid-template-columns:1fr}}
+.steps li{counter-increment:step;padding:24px 24px 28px 0;border-top:1px solid var(--line);display:grid;gap:8px;align-content:start}
+.steps li::before{content:counter(step);font-weight:800;font-size:var(--step-2);color:var(--leaf);line-height:1;font-variant-numeric:tabular-nums}
+.steps .owner{font-size:var(--step--1);color:var(--muted)}
+.steps .owner b{color:var(--ink);font-weight:600}
+
+/* kết nối quốc gia */
+.national{background:var(--leaf-deep);color:#E6F0E8}
+.national .wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(28px,5vw,72px);align-items:start}
+@media (max-width:900px){.national .wrap{grid-template-columns:1fr}}
+.national h2{color:#fff;font-size:var(--step-3);letter-spacing:-.03em}
+.national .lede{color:#BFD3C4;margin-top:18px}
+.national ul{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.national li{padding:18px 0;border-top:1px solid rgba(255,255,255,.18);display:grid;gap:4px}
+.national li b{color:#fff;font-size:var(--step-1)}
+.national small{color:#9FB8A6;font-size:var(--step--1)}
+
+/* cây trồng */
+.crops{display:flex;flex-wrap:wrap;gap:10px}
+.crop{padding:9px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-weight:500}
+.crop.pri{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.crop-note{margin-top:16px;font-size:var(--step--1);color:var(--muted)}
+
+/* chiến dịch */
+.campaign .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);align-items:center}
+@media (max-width:900px){.campaign .wrap{grid-template-columns:1fr}}
+.campaign-figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.campaign-figs div{background:var(--surface);padding:22px}
+.campaign-figs strong{display:block;font-size:var(--step-2);font-weight:800;letter-spacing:-.02em;color:var(--gold)}
+.campaign-figs span{font-size:var(--step--1);color:var(--muted)}
+.campaign .tag{font-size:var(--step--1);color:var(--muted);margin-top:14px}
+
+/* uy tín */
+.proof .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,64px)}
+@media (max-width:900px){.proof .wrap{grid-template-columns:1fr}}
+.timeline{list-style:none;margin:0;padding:0;border-left:2px solid var(--line)}
+.timeline li{position:relative;padding:0 0 22px 22px}
+.timeline li::before{content:"";position:absolute;left:-7px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--leaf)}
+.timeline li.next::before{border-style:dashed;border-color:var(--gold)}
+.timeline time{display:block;font-size:var(--step--1);color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.names{display:grid;gap:28px;align-content:start}
+.names h3{font-size:var(--step-0);color:var(--muted);font-weight:600}
+.names p{font-weight:500;line-height:1.8}
+
+/* liên hệ */
+.contact{background:var(--surface);border-top:1px solid var(--line)}
+.contact .wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,5vw,72px)}
+@media (max-width:900px){.contact .wrap{grid-template-columns:1fr}}
+.direct{display:grid;gap:14px;margin-top:28px}
+.direct a,.direct div{display:flex;gap:12px;align-items:center;color:var(--ink);text-decoration:none;font-weight:600}
+.direct svg{width:22px;height:22px;color:var(--leaf);flex:none}
+.direct span{font-weight:400;color:var(--muted);font-size:var(--step--1);display:block}
+form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:560px){form{grid-template-columns:1fr}}
+.field{display:grid;gap:6px}
+.field.full{grid-column:1/-1}
+label{font-size:var(--step--1);font-weight:600}
+input,select,textarea{font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--leaf);outline:none}
+textarea{min-height:96px;resize:vertical}
+.err{color:#B42318;font-size:var(--step--1);min-height:1em}
+.form-done{grid-column:1/-1;background:#E8F3EA;border:1px solid #B9D9C0;border-radius:14px;padding:18px;display:none}
+.form-done.show{display:block}
+.form-done p+p{margin-top:8px}
+
+footer{background:var(--ink);color:#B9C6BD;font-size:var(--step--1);padding:44px 0}
+footer .wrap{display:grid;grid-template-columns:2fr 1fr 1fr;gap:28px}
+@media (max-width:760px){footer .wrap{grid-template-columns:1fr}}
+footer a{color:#fff;text-decoration:none}
+footer a:hover{text-decoration:underline}
+footer b{color:#fff}
+footer ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+</style>
+</head>
+<body>
+
+<div class="notice"><div class="wrap">
+  <span>Từ 01/07/2026, FarmBase đồng bộ nhật ký vùng trồng có mã số lên hệ thống truy xuất nguồn gốc nông sản quốc gia.</span>
+  <a href="#ket-noi">Xem cách hoạt động</a>
+</div></div>
+
+<header class="site"><div class="wrap">
+  <a class="logo" href="#top" aria-label="FarmBase, về đầu trang">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 9 15 5l13 4-2 16-11 3-9-4Z" fill="#1B6A3A"/><path d="M15 5 13 28M4 9l22 7M6 22l20-6" stroke="#F2F5EF" stroke-width="1.6" fill="none"/><circle cx="18" cy="13" r="2.6" fill="#E9C9B8" stroke="#8C3A1E" stroke-width="1.4"/></svg>
+    FarmBase
+  </a>
+  <nav class="main" aria-label="Điều hướng chính">
+    <a href="#cach-lam">Cách làm</a>
+    <a href="#quy-trinh">Triển khai</a>
+    <a href="#chien-dich">Chiến dịch 10.000 ha</a>
+    <a href="#bvi">Về BVI</a>
+  </nav>
+  <a class="btn btn-primary" href="#lien-he">Nhận tư vấn</a>
+</div></header>
+
+<main id="top">
+
+<section class="hero" aria-labelledby="hero-title"><div class="wrap">
+  <div>
+    <h1 id="hero-title">Dữ liệu vườn trồng, minh bạch từ gốc</h1>
+    <p class="lede">FarmBase giúp HTX, doanh nghiệp và địa phương quản lý vùng trồng, thửa đất và nhật ký canh tác. Nông hộ ghi ngay trên Zalo. Hồ sơ luôn sẵn khi cơ quan kiểm tra và khi người mua quét mã QR.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="https://zalo.me/0911423839">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg>
+        Nhắn chuyên viên qua Zalo
+      </a>
+      <a class="btn btn-ghost" href="#quy-trinh">Xem 6 bước triển khai</a>
+    </div>
+    <p class="farmer-link">Bạn là nông hộ? <a href="https://zalo.me/s/3146448650831889838/">Mở Zalo Mini App FarmBase</a>, không cần cài thêm ứng dụng.</p>
+    <div class="facts" aria-label="Số liệu tại Đắk Lắk, cập nhật 28/10/2026">
+      <div><strong class="num">66</strong>vùng trồng</div>
+      <div><strong class="num">1.500+</strong>nông hộ có dữ liệu</div>
+      <div><strong class="num">~1.600 ha</strong>đang quản lý</div>
+      <div><strong class="num">~3.000</strong>nông hộ đã tập huấn</div>
+    </div>
+  </div>
+
+  <figure class="map" style="margin:0" aria-label="Minh họa bản đồ thửa đất và một bản ghi nhật ký canh tác">
+    <svg class="plots" viewBox="0 0 640 500" role="img" aria-hidden="true">
+      <defs>
+        <pattern id="trees" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="22" fill="#CFE0C8"/><circle cx="11" cy="11" r="5" fill="#8DB585"/></pattern>
+        <pattern id="coffee" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)"><rect width="14" height="14" fill="#DCE7D3"/><circle cx="7" cy="7" r="2.6" fill="#7FA478"/></pattern>
+        <pattern id="bare" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><rect width="10" height="10" fill="#E6E2D6"/><line x1="0" y1="0" x2="0" y2="10" stroke="#D3CCBA" stroke-width="3"/></pattern>
+        <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="#8C3A1E" stroke-width="1.4" opacity=".45"/></pattern>
+      </defs>
+      <polygon points="0,0 96,0 131,121 0,114" class="parcel" fill="url(#trees)"/>
+<text x="57" y="59" class="pnum">112</text>
+<polygon points="0,114 131,121 94,253 0,229" class="parcel" fill="url(#coffee)"/>
+<text x="56" y="179" class="pnum">113</text>
+<polygon points="0,229 94,253 93,374 0,384" class="parcel" fill="url(#trees)"/>
+<text x="47" y="310" class="pnum">114</text>
+<polygon points="0,384 93,374 95,500 0,500" class="parcel" fill="url(#bare)"/>
+<text x="47" y="440" class="pnum">115</text>
+<polygon points="96,0 225,0 250,152 131,121" class="parcel" fill="url(#coffee)"/>
+<text x="176" y="68" class="pnum">116</text>
+<polygon points="131,121 250,152 227,241 94,253" class="parcel" fill="url(#trees)"/>
+<text x="176" y="192" class="pnum">117</text>
+<polygon points="94,253 227,241 266,410 93,374" class="parcel" fill="url(#coffee)"/>
+<text x="170" y="320" class="pnum">118</text>
+<polygon points="93,374 266,410 262,500 95,500" class="parcel" fill="url(#trees)"/>
+<text x="179" y="446" class="pnum">119</text>
+<polygon points="225,0 376,0 420,111 250,152" class="parcel" fill="url(#bare)"/>
+<text x="318" y="66" class="pnum">120</text>
+<polygon points="250,152 420,111 411,250 227,241" class="parcel hl"/>
+<polygon points="250,152 420,111 411,250 227,241" fill="url(#hatch)"/>
+<polygon points="227,241 411,250 357,363 266,410" class="parcel" fill="url(#trees)"/>
+<text x="315" y="316" class="pnum">122</text>
+<polygon points="266,410 357,363 369,500 262,500" class="parcel" fill="url(#coffee)"/>
+<text x="314" y="443" class="pnum">123</text>
+<polygon points="376,0 536,0 488,145 420,111" class="parcel" fill="url(#trees)"/>
+<text x="455" y="64" class="pnum">124</text>
+<polygon points="420,111 488,145 523,259 411,250" class="parcel" fill="url(#coffee)"/>
+<text x="460" y="191" class="pnum">125</text>
+<polygon points="411,250 523,259 516,365 357,363" class="parcel" fill="url(#bare)"/>
+<text x="452" y="309" class="pnum">126</text>
+<polygon points="357,363 516,365 479,500 369,500" class="parcel" fill="url(#trees)"/>
+<text x="430" y="432" class="pnum">127</text>
+<polygon points="536,0 640,0 640,127 488,145" class="parcel" fill="url(#coffee)"/>
+<text x="576" y="68" class="pnum">128</text>
+<polygon points="488,145 640,127 640,281 523,259" class="parcel" fill="url(#trees)"/>
+<text x="573" y="203" class="pnum">129</text>
+<polygon points="523,259 640,281 640,391 516,365" class="parcel" fill="url(#trees)"/>
+<text x="580" y="324" class="pnum">130</text>
+<polygon points="516,365 640,391 640,500 479,500" class="parcel" fill="url(#coffee)"/>
+<text x="569" y="439" class="pnum">131</text>
+      <path class="contour" d="M-10 70 C 120 40, 260 110, 400 60 S 600 20, 660 60"/>
+      <path class="contour" d="M-10 300 C 140 270, 230 340, 380 300 S 560 250, 660 290"/>
+      <path class="contour" d="M-10 440 C 160 420, 300 470, 450 430 S 600 410, 660 430"/>
+      <circle class="pin-ring" cx="327" cy="190" r="22"/>
+      <g transform="translate(327 190)">
+        <path d="M0 0c-9-12-14-19-14-26a14 14 0 0 1 28 0c0 7-5 14-14 26Z" fill="#8C3A1E" stroke="#fff" stroke-width="2.5"/>
+        <circle cx="0" cy="-26" r="5" fill="#fff"/>
+      </g>
+      <text x="327" y="222" class="pnum" style="fill:#8C3A1E;font-weight:700">121</text>
+    </svg>
+    <div class="map-legend"><b>Vùng trồng sầu riêng</b><br>Xã Krông Pắc, tờ bản đồ số 14</div>
+    <div class="record">
+      <h3>Thửa 121 <span>Sầu riêng Ri6, 1,2 ha</span></h3>
+      <dl>
+        <dt>Thời gian</dt><dd class="num">06/11/2026, 07:42</dd>
+        <dt>Công việc</dt><dd>Phun thuốc trừ nhện</dd>
+        <dt>Hoạt chất</dt><dd>Abamectin 1,8 EC, 10 ml/bình 16 lít</dd>
+        <dt>Cách ly</dt><dd>7 ngày, được thu hoạch từ 13/11</dd>
+        <dt>Người ghi</dt><dd>Nông hộ, qua Zalo Mini App</dd>
+      </dl>
+      <div class="ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Có ảnh bao bì, đã đồng bộ hồ sơ vùng</div>
+      <small>Dữ liệu minh họa</small>
+    </div>
+  </figure>
+</div></section>
+
+<section id="cach-lam" aria-labelledby="cmp-title"><div class="wrap">
+  <div class="sec-head">
+    <h2 id="cmp-title">Từ sổ tay giấy sang hồ sơ số</h2>
+    <p class="lede">Những việc HTX vẫn làm mỗi mùa vụ, nay có bằng chứng đi kèm và không phải gom lại từ nhiều cuốn sổ.</p>
+  </div>
+  <div class="compare-wrap">
+  <table class="compare">
+    <thead><tr><th scope="col">Việc cần làm</th><th scope="col">Sổ giấy</th><th scope="col">Với FarmBase</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Ghi chép</th><td class="old">Viết tay, dễ thất lạc, khó đọc lại</td><td class="new">Nông hộ ghi trên Zalo, mỗi lần ghi có ngày giờ</td></tr>
+      <tr><th scope="row">Bằng chứng</th><td class="old">Ảnh rời trong điện thoại, không gắn với thửa nào</td><td class="new">Ảnh bao bì và ảnh vườn đính kèm từng lần ghi</td></tr>
+      <tr><th scope="row">Thuốc BVTV, thời gian cách ly</th><td class="old">Ghi tự do, dễ sai liều và sai ngày cách ly</td><td class="new">Chọn từ danh mục hoạt chất, liều lượng và thời gian cách ly có sẵn</td></tr>
+      <tr><th scope="row">Bản đồ thửa</th><td class="old">Không có hoặc vẽ tay</td><td class="new">Tọa độ, ranh giới, ảnh flycam, số thửa và tờ bản đồ</td></tr>
+      <tr><th scope="row">Khi đoàn kiểm tra đến</th><td class="old">Gom sổ của từng hộ, mất nhiều ngày</td><td class="new">Hồ sơ vùng mở ngay trên trang quản trị</td></tr>
+      <tr><th scope="row">Mã QR cho người mua</th><td class="old">Trang giới thiệu tĩnh, không có dữ liệu thật</td><td class="new">Quét là thấy toàn bộ hồ sơ của vùng trồng</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div></section>
+
+<section aria-labelledby="roles-title" style="padding-top:0"><div class="wrap">
+  <div class="sec-head">
+    <h2 id="roles-title">Mỗi người dùng một việc, chung một hồ sơ</h2>
+  </div>
+  <div class="roles">
+    <article class="role">
+      <p class="who">Nông hộ</p>
+      <h3>Ghi nhật ký trong vài chạm</h3>
+      <ul>
+        <li>Ghi công việc, thuốc đã dùng và chụp ảnh ngay tại vườn</li>
+        <li>Người thân được ủy quyền có thể ghi thay</li>
+      </ul>
+      <p class="via">Dùng qua Zalo Mini App, không cần cài đặt</p>
+    </article>
+    <article class="role">
+      <p class="who">HTX và doanh nghiệp</p>
+      <h3>Quản lý cả vùng trên bản đồ</h3>
+      <ul>
+        <li>Xem vùng, thửa và hộ nào chưa ghi nhật ký</li>
+        <li>Hồ sơ sẵn sàng cho kiểm tra mã số vùng trồng</li>
+      </ul>
+      <p class="via">Dùng trên trang quản trị web</p>
+    </article>
+    <article class="role">
+      <p class="who">Người mua và cơ quan quản lý</p>
+      <h3>Kiểm tra nguồn gốc không cần tài khoản</h3>
+      <ul>
+        <li>Quét QR để xem hồ sơ vùng trồng</li>
+        <li>Xã, phường có tài khoản riêng để giám sát</li>
+      </ul>
+      <p class="via">Dùng bằng camera điện thoại</p>
+    </article>
+  </div>
+</div></section>
+
+<section id="quy-trinh" class="process" aria-labelledby="steps-title"><div class="wrap">
+  <div class="sec-head">
+    <h2 id="steps-title">Triển khai một vùng trồng trong 6 bước</h2>
+    <p class="lede">BVI làm cùng HTX từ khảo sát ngoài vườn đến khi in mã QR. Mỗi bước ghi rõ ai phụ trách.</p>
+  </div>
+  <ol class="steps">
+    <li><h3>Khảo sát thực địa</h3><p>Đo GPS, bay flycam, xác định ranh giới thửa.</p><p class="owner">Phụ trách: <b>BVI</b></p></li>
+    <li><h3>Số hóa hồ sơ</h3><p>Nhập hộ, thửa, số thửa và tờ bản đồ. Có mẫu Excel để nhập hàng loạt.</p><p class="owner">Phụ trách: <b>BVI cùng HTX</b></p></li>
+    <li><h3>Tập huấn tại vùng</h3><p>Hướng dẫn nông hộ dùng Zalo Mini App ngay tại vườn.</p><p class="owner">Phụ trách: <b>BVI</b></p></li>
+    <li><h3>Ghi nhật ký hằng ngày</h3><p>Công việc, thuốc chọn từ danh mục, ảnh bao bì.</p><p class="owner">Phụ trách: <b>Nông hộ</b></p></li>
+    <li><h3>Giám sát và đồng bộ</h3><p>HTX kiểm tra nhật ký. Vùng có mã số được đồng bộ lên hệ thống quốc gia.</p><p class="owner">Phụ trách: <b>HTX, doanh nghiệp</b></p></li>
+    <li><h3>In QR cho người mua</h3><p>In mã theo vùng hoặc theo lô hàng để dán lên thùng.</p><p class="owner">Phụ trách: <b>HTX, doanh nghiệp</b></p></li>
+  </ol>
+</div></section>
+
+<section id="ket-noi" class="national" aria-labelledby="nat-title"><div class="wrap">
+  <div>
+    <h2 id="nat-title">Nhập một lần, dùng nhiều nơi</h2>
+    <p class="lede">BVI là đơn vị cung cấp giải pháp có tên trên hệ thống truy xuất nguồn gốc nông sản quốc gia. Nhật ký nông hộ ghi trên FarmBase được dùng lại cho kiểm tra, xuất khẩu và người mua, không phải nhập lại.</p>
+  </div>
+  <ul>
+    <li><b>Đồng bộ nhật ký vùng có mã số</b><small>Áp dụng từ 01/07/2026</small></li>
+    <li><b>Tài khoản giám sát cho xã, phường</b><small>Đã bàn giao cho xã Krông Pắc ngày 28/10/2026</small></li>
+    <li><b>Kết nối GS1 Việt Nam và phân hệ cơ sở đóng gói</b><small>Dự kiến tháng 11/2026</small></li>
+    <li><small>Hệ thống quốc gia đang vận hành thử nghiệm, kiểm tra ngày 02/11/2026.</small></li>
+  </ul>
+</div></section>
+
+<section aria-labelledby="crops-title"><div class="wrap">
+  <div class="sec-head">
+    <h2 id="crops-title">12 loại cây trồng đang hỗ trợ</h2>
+  </div>
+  <div class="crops">
+    <span class="crop pri">Sầu riêng</span><span class="crop pri">Cà phê</span>
+    <span class="crop">Thanh long</span><span class="crop">Chanh leo</span><span class="crop">Dứa</span><span class="crop">Chuối</span>
+    <span class="crop">Mít</span><span class="crop">Bưởi</span><span class="crop">Vải</span><span class="crop">Nhãn</span><span class="crop">Xoài</span><span class="crop">Dừa</span>
+  </div>
+  <p class="crop-note">Sầu riêng và cà phê là hai cây ưu tiên trong chiến dịch 10.000 ha.</p>
+</div></section>
+
+<section id="chien-dich" class="campaign" aria-labelledby="camp-title" style="padding-top:0"><div class="wrap">
+  <div>
+    <h2 id="camp-title">Chiến dịch 10.000 ha cây trồng chủ lực</h2>
+    <p class="lede" style="margin-top:14px">HTX NN CNC DaLa chủ trì, cùng BVI và HTX NN Xanh Krông Pắc, đưa vùng trồng sầu riêng và cà phê lên hồ sơ số trong 12 tháng.</p>
+    <p class="tag">Kế hoạch từ 11/2026 đến 11/2027, chia 4 giai đoạn. Đây là mục tiêu, chưa phải kết quả.</p>
+    <div class="hero-cta" style="margin-top:22px"><a class="btn btn-ghost" href="#lien-he">Đăng ký tham gia</a></div>
+  </div>
+  <div class="campaign-figs">
+    <div><strong class="num">10.000 ha</strong><span>diện tích mục tiêu</span></div>
+    <div><strong class="num">20.000</strong><span>nông hộ</span></div>
+    <div><strong class="num">100</strong><span>sự kiện: hội thảo, tập huấn, đầu bờ</span></div>
+    <div><strong class="num">4</strong><span>giai đoạn trong 12 tháng</span></div>
+  </div>
+</div></section>
+
+<section id="bvi" class="proof" aria-labelledby="bvi-title" style="padding-top:0"><div class="wrap">
+  <div>
+    <div class="sec-head">
+      <h2 id="bvi-title">Công ty Cổ phần BVI</h2>
+      <p class="lede">Thành lập năm 2019 tại Đắk Lắk. FarmBase do BVI phát triển cùng Salefronts.</p>
+    </div>
+    <ol class="timeline">
+      <li><time>13/03/2019</time>Thành lập công ty tại Đắk Lắk</li>
+      <li><time>20/04/2026</time>Ký chương trình hợp tác với Hiệp hội Sầu riêng Đắk Lắk</li>
+      <li><time>14–17/05/2026</time>Tập huấn giảng viên về sầu riêng cùng GIZ, SOFRI và Trung tâm Khuyến nông</li>
+      <li><time>01/07/2026</time>Kết nối hệ thống truy xuất nguồn gốc quốc gia</li>
+      <li><time>12/10/2026</time>Nhận bằng khen của Chủ tịch UBND tỉnh</li>
+      <li><time>28/10/2026</time>Bàn giao tài khoản truy xuất cho xã Krông Pắc</li>
+      <li class="next"><time>11/2026, dự kiến</time>Kết nối GS1 Việt Nam và phân hệ cơ sở đóng gói</li>
+    </ol>
+  </div>
+  <div class="names">
+    <div><h3>Khách hàng</h3><p>Song Toàn Phát, Uyên Điệp, Thiện Tâm, Nông nghiệp Xanh Việt Nam, HTX NN Xanh Krông Pắc</p></div>
+    <div><h3>Đối tác</h3><p>Hiệp hội Sầu riêng Đắk Lắk, Liên hiệp HTX NN CNC Cư M'gar, HTX NN CNC DaLa, HTX NN Công nghệ Xanh An Nông, Bazan Lab, GIZ, SOFRI</p></div>
+    <div><h3>Ban lãnh đạo</h3><p>Ông Trương Công Tài, Giám đốc<br>Ông Minh Đức Uy, Phó Giám đốc Công nghệ và Chuyển đổi số</p></div>
+  </div>
+</div></section>
+
+<section id="lien-he" class="contact" aria-labelledby="contact-title"><div class="wrap">
+  <div>
+    <h2 id="contact-title">Nói với chúng tôi về vùng trồng của bạn</h2>
+    <p class="lede" style="margin-top:14px">Chuyên viên sẽ gọi lại trong giờ hành chính để tư vấn mã số vùng trồng, truy xuất nguồn gốc hoặc kết nối thu mua.</p>
+    <div class="direct">
+      <a href="https://zalo.me/0911423839"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg><div>Zalo 0911 423 839<span>Chị Ngọc, giờ hành chính</span></div></a>
+      <a href="tel:0911423839"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><div>Gọi 0911 423 839<span>Hotline</span></div></a>
+      <a href="mailto:info@bvi.vn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><div>info@bvi.vn<span>Email</span></div></a>
+    </div>
+  </div>
+  <form id="consult" novalidate>
+    <div class="field"><label for="f-name">Họ và tên</label><input id="f-name" name="name" autocomplete="name" required></div>
+    <div class="field"><label for="f-phone">Số điện thoại hoặc Zalo</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required></div>
+    <div class="field"><label for="f-org">Bạn là</label>
+      <select id="f-org" name="org"><option>HTX</option><option>Doanh nghiệp</option><option>Cơ sở đóng gói</option><option>Xã, phường</option><option>Nông hộ</option><option>Khác</option></select></div>
+    <div class="field"><label for="f-need">Bạn cần</label>
+      <select id="f-need" name="need"><option>Truy xuất nguồn gốc</option><option>Tư vấn mã số vùng trồng</option><option>Tư vấn mã số cơ sở đóng gói</option><option>Kết nối thu mua, công nghệ</option><option>Giải pháp công nghệ riêng</option></select></div>
+    <div class="field"><label for="f-area">Diện tích ước tính (ha)</label><input id="f-area" name="area" type="number" min="0" step="0.1" inputmode="decimal"></div>
+    <div class="field"><label for="f-crop">Cây trồng chính</label><input id="f-crop" name="crop" placeholder="Ví dụ: sầu riêng"></div>
+    <div class="field full"><label for="f-note">Ghi chú</label><textarea id="f-note" name="note"></textarea></div>
+    <p class="err full" id="f-err" role="alert" style="grid-column:1/-1"></p>
+    <div class="field full"><button class="btn btn-primary" type="submit" style="justify-self:start">Gửi yêu cầu tư vấn</button></div>
+    <div class="form-done" id="f-done" role="status">
+      <p><b>Đã ghi nhận thông tin của bạn.</b></p>
+      <p>Bản xem thử này chưa nối máy chủ nên yêu cầu chưa được gửi đi. Để được tư vấn ngay, hãy nhắn Zalo 0911 423 839.</p>
+    </div>
+  </form>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <div>
+    <b>Công ty Cổ phần BVI</b><br>
+    Mã số thuế 6001653877<br>
+    150 Phan Huy Chú, P. Thành Nhất, Đắk Lắk
+  </div>
+  <div><b>Liên hệ</b>
+    <ul><li><a href="tel:0911423839">0911 423 839</a></li><li><a href="mailto:info@bvi.vn">info@bvi.vn</a></li><li><a href="https://zalo.me/1461539868993925462">Zalo OA FarmBase</a></li></ul>
+  </div>
+  <div><b>Theo dõi</b>
+    <ul><li><a href="https://www.facebook.com/farmbasevn">Facebook</a></li><li><a href="https://m.me/farmbasevn">Messenger</a></li><li><a href="https://zalo.me/s/3146448650831889838/">Zalo Mini App</a></li></ul>
+  </div>
+</div></footer>
+
+<script>
+(function(){
+  var f=document.getElementById('consult'),err=document.getElementById('f-err'),done=document.getElementById('f-done');
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var name=f.elements['name'].value.trim(),phone=f.elements['phone'].value.replace(/\s/g,'');
+    if(!name){err.textContent='Nhập họ và tên để chuyên viên biết cách xưng hô.';f.elements['name'].focus();return;}
+    if(!/^(\+?84|0)\d{8,10}$/.test(phone)){err.textContent='Số điện thoại chưa đúng. Nhập 10 số, ví dụ 0911423839.';f.elements['phone'].focus();return;}
+    err.textContent='';done.classList.add('show');
+  });
+})();
+</script>
+</body>
+</html>
